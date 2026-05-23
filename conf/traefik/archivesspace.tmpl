@@ -1,0 +1,39 @@
+http:
+  services:
+    archivesspace-public:
+      loadBalancer:
+        servers:
+          - url: "http://archivesspace:8081"
+    archivesspace-staff:
+      loadBalancer:
+        servers:
+          - url: "http://archivesspace:8080"
+    archivesspace-api:
+      loadBalancer:
+        servers:
+          - url: "http://archivesspace:8089"
+  middlewares:
+    archivesspace-api-strip:
+      stripPrefix:
+        prefixes:
+          - /api
+  routers:
+    archivesspace-api-web:
+      rule: 'Host(`{{ env "DOMAIN" | default "localhost" }}`) && PathPrefix(`/api`)'
+      entryPoints:
+        - web
+      middlewares:
+        - archivesspace-api-strip
+      service: archivesspace-api
+      priority: 200
+    archivesspace-staff-web:
+      rule: 'Host(`{{ env "DOMAIN" | default "localhost" }}`) && PathPrefix(`/staff`)'
+      entryPoints:
+        - web
+      service: archivesspace-staff
+      priority: 100
+    archivesspace-public-web:
+      rule: 'Host(`{{ env "DOMAIN" | default "localhost" }}`)'
+      entryPoints:
+        - web
+      service: archivesspace-public

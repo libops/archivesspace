@@ -1,0 +1,109 @@
+---
+x-common: &common
+  restart: unless-stopped
+  networks:
+    default:
+
+networks:
+  default:
+
+volumes:
+  archivesspace-data: {}
+  mariadb-data: {}
+  solr-data: {}
+
+secrets:
+  DB_ROOT_PASSWORD:
+    file: ./secrets/DB_ROOT_PASSWORD
+  ARCHIVESSPACE_DB_PASSWORD:
+    file: ./secrets/ARCHIVESSPACE_DB_PASSWORD
+
+services:
+  traefik:
+    <<: *common
+    image: traefik:v3.7.1@sha256:6b9cbca6fac42ab0075f5437d8dc1685cfd188626d8d515839ea94f8b6271c42
+    command:
+      - --providers.file.filename=/etc/traefik/dynamic/archivesspace.yml
+      - --providers.file.watch=true
+      - --entrypoints.web.address=:80
+    environment:
+      DOMAIN: "${DOMAIN:-localhost}"
+    ports:
+      - "${HOST_INSECURE_PORT:-80}:80"
+    volumes:
+      - ./conf/traefik/archivesspace.tmpl:/etc/traefik/dynamic/archivesspace.yml:ro
+    depends_on:
+      archivesspace:
+        condition: service_healthy
+
+  archivesspace:
+    <<: *common
+    image: libops/archivesspace:4.2.0
+    build:
+      context: .
+      args:
+        BASE_IMAGE: libops/archivesspace:4.2.0
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      ASPACE_DB_MIGRATE: "${ASPACE_DB_MIGRATE:-true}"
+      ASPACE_JAVA_XMX: "${ASPACE_JAVA_XMX:--Xmx2048m}"
+      DB_HOST: mariadb
+      DB_PORT: "3306"
+      DB_NAME: "${DB_NAME:-archivesspace}"
+      DB_USER: "${DB_USER:-archivesspace}"
+      DOMAIN: "${DOMAIN:-localhost}"
+      JAVA_OPTS: "${JAVA_OPTS:--Djava.awt.headless=true -Dfile.encoding=UTF-8 -server -Xss1024k -Djavax.accessibility.assistive_technologies=''}"
+      SMTP_FROM: "${SMTP_FROM:-noreply@localhost}"
+      SMTP_HOST: "${SMTP_HOST:-host.docker.internal}"
+      SMTP_PORT: "${SMTP_PORT:-25}"
+    secrets:
+      - source: DB_ROOT_PASSWORD
+      - source: ARCHIVESSPACE_DB_PASSWORD
+    volumes:
+      - archivesspace-data:/archivesspace/data:rw
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      solr:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8081/ || exit 1"]
+      interval: 1m
+      timeout: 5s
+      retries: 5
+      start_period: 5m
+
+  mariadb:
+    <<: *common
+    image: libops/mariadb:11@sha256:df935aa57a4444a1bd9024afdf8b3d78abfdfa2c4662320badd099fa6193de6b
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --innodb_buffer_pool_size=1G --innodb_buffer_pool_instances=1 --log_bin_trust_function_creators=1
+    cap_add:
+      - SYS_NICE
+    secrets:
+      - source: DB_ROOT_PASSWORD
+    volumes:
+      - mariadb-data:/var/lib/mysql:rw
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot --password=\"$$(cat /run/secrets/DB_ROOT_PASSWORD)\" --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+  solr:
+    <<: *common
+    image: libops/archivesspace-solr:4.2.0
+    pull_policy: build
+    build:
+      context: ./solr
+      args:
+        BASE_IMAGE: libops/solr:9@sha256:97700bbb4413974e441fdf3f5f2e8e32dfbce040174028492135f1db8bc950de
+    command:
+      - solr-precreate
+      - archivesspace
+      - /opt/solr/server/solr/configsets/archivesspace
+    environment:
+      SOLR_JAVA_MEM: "-Xms1g -Xmx1g"
+    volumes:
+      - solr-data:/var/solr:rw

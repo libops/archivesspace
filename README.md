@@ -1,49 +1,81 @@
 # ArchivesSpace Docker Template
 
-LibOps-owned Docker Compose template for ArchivesSpace.
+LibOps Docker Compose template for running [ArchivesSpace](https://archivesspace.org/) with Traefik, MariaDB, Solr, and the LibOps ArchivesSpace image.
 
-## Quick Start
+## Requirements
+
+- `sitectl` installed on the host that will run the site.
+- Docker with the Compose v2 plugin installed on the same host.
+
+## Quick start
+
+Create a new ArchivesSpace site from this template:
 
 ```bash
-make up
+sitectl create archivesspace/default \
+  --template-repo https://github.com/libops/archivesspace \
+  --path ./my-archivesspace-site \
+  --type local \
+  --checkout-source template \
+  --default-context
 ```
 
-Traefik is the only ingress:
+The default public routes are:
 
 - Public interface: `http://localhost/`
 - Staff interface: `http://localhost/staff/`
 - Backend API: `http://localhost/api/`
 
-`make up` runs `scripts/init.sh`, which creates `.env` from `sample.env` when needed and generates missing Docker secret files under `secrets/`.
+## Basic operations with sitectl
 
-## Layout
+Run these from the generated checkout, or add `--context <name>` when operating from elsewhere.
+
+```bash
+# Start or update the Compose stack
+sitectl compose up --remove-orphans -d
+
+# Check the site and context configuration
+sitectl healthcheck
+sitectl validate
+
+# Update image tags or pin a full image reference
+sitectl image set --tag archivesspace=3.5.1 --tag solr=9
+sitectl image set --image archivesspace=libops/archivesspace:3.5.1@sha256:...
+
+# Enable local development bind mounts
+sitectl set dev-mode enabled
+sitectl converge
+
+# Switch TLS modes
+sitectl traefik tls mkcert --domain archivesspace.localhost
+sitectl traefik tls letsencrypt --email ops@example.org
+
+# Trust an upstream load balancer or reverse proxy
+sitectl set reverse-proxy enabled --trusted-ip 203.0.113.10/32
+sitectl converge
+```
+
+See the [ArchivesSpace sitectl plugin docs](https://github.com/libops/sitectl-docs/blob/main/plugins/archivesspace.mdx) for API helpers, resource shortcuts, container scripts, lifecycle operations, and rollout details.
+
+## Makefile
+
+The Makefile is intentionally small. It only keeps template-specific targets that are not core sitectl operations:
+
+```bash
+make rollout
+make test
+make lint
+```
+
+Use `sitectl compose ...`, `sitectl traefik ...`, and `sitectl set ...` directly for normal stack operations.
+
+## Template notes
 
 - `traefik` owns HTTP ingress.
 - `archivesspace` builds this template on top of the LibOps ArchivesSpace image.
-- `mariadb` is the only database service.
+- `mariadb` is the application database.
 - `solr` builds a small local image from the LibOps Solr base and downloads the ArchivesSpace Solr configset during image build.
 - `config/config.rb` is baked into the template image.
-- `plugins`, `locales`, and `stylesheets` are checked-in customization points for downstream repos.
+- `plugins`, `locales`, and `stylesheets` are checked-in customization points for downstream repositories.
 
-`docker-compose.yaml` is the production-shaped default. Local development changes should be copied from `docker-compose.override-example.yaml` to `docker-compose.override.yaml`; the example exposes MariaDB and Solr and includes optional bind mounts for local plugin, locale, and stylesheet editing.
-
-Downstream repos bake customizations into their local image during `docker compose build`. The bind mounts in the override example are only for local development feedback loops.
-
-## SMTP
-
-ArchivesSpace runtime settings are configured in `config/config.rb`. The application database password is read from `/run/secrets/ARCHIVESSPACE_DB_PASSWORD`, while MariaDB uses `/run/secrets/DB_ROOT_PASSWORD`. `.env` is used only for non-secret Compose defaults.
-
-By default, mail relays through `${SMTP_HOST:-host.docker.internal}:${SMTP_PORT:-25}` so production delivery can be handled by the host MTA and LibOps relay path. The override example adds Mailpit and points ArchivesSpace at `mailpit:1025` for local testing.
-
-## Rollouts
-
-`make rollout` runs `scripts/rollout.sh`, which checks out the requested git ref when provided, pulls images, runs init, and converges the Compose stack. ArchivesSpace database migrations are handled by startup with `ASPACE_DB_MIGRATE=true`.
-
-## Updates
-
-Renovate tracks:
-
-- ArchivesSpace release downloads in buildkit.
-- ArchivesSpace Solr configset downloads in `solr/Dockerfile`.
-- LibOps base images for supporting services.
-- Shared LibOps Renovate defaults through `github>libops/renovate-config`.
+ArchivesSpace runtime settings are configured in `config/config.rb`. The application database password is read from `/run/secrets/ARCHIVESSPACE_DB_PASSWORD`, while MariaDB uses `/run/secrets/DB_ROOT_PASSWORD`.

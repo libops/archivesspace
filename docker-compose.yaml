@@ -26,6 +26,7 @@ services:
       - --providers.file.filename=/etc/traefik/dynamic/archivesspace.yml
       - --providers.file.watch=true
       - --entrypoints.web.address=:80
+      - --entrypoints.web.transport.respondingTimeouts.readTimeout=300s
     environment:
       DOMAIN: "${DOMAIN:-localhost}"
     ports:

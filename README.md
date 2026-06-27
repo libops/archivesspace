@@ -4,7 +4,7 @@ LibOps Docker Compose template for running [ArchivesSpace](https://archivesspace
 
 ## Requirements
 
-- `sitectl` installed on the host that will run the site.
+- [sitectl](https://sitectl.libops.io/install) installed on the host that will run the site.
 - Docker with the Compose v2 plugin installed on the same host.
 
 ## Quick start
@@ -55,7 +55,7 @@ sitectl set reverse-proxy enabled --trusted-ip 203.0.113.10/32
 sitectl converge
 ```
 
-See the [ArchivesSpace sitectl plugin docs](https://github.com/libops/sitectl-docs/blob/main/plugins/archivesspace.mdx) for API helpers, resource shortcuts, container scripts, lifecycle operations, and rollout details.
+See the [ArchivesSpace sitectl plugin docs](https://sitectl.libops.io/plugins/archivesspace) for API helpers, resource shortcuts, container scripts, lifecycle operations, and rollout details.
 
 ## Makefile
 
@@ -79,3 +79,7 @@ Use `sitectl compose ...`, `sitectl traefik ...`, and `sitectl set ...` directly
 - `plugins`, `locales`, and `stylesheets` are checked-in customization points for downstream repositories.
 
 ArchivesSpace runtime settings are configured in `config/config.rb`. The application database password is read from `/run/secrets/ARCHIVESSPACE_DB_PASSWORD`, while MariaDB uses `/run/secrets/DB_ROOT_PASSWORD`.
+
+## License
+
+The Docker Compose template and LibOps-specific setup in this repository are licensed under the MIT License. ArchivesSpace is licensed separately under the Educational Community License 2.0; see `LICENSE.archivesspace`.

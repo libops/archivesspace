@@ -1,6 +1,6 @@
 # ArchivesSpace Docker Template
 
-LibOps Docker Compose template for running [ArchivesSpace](https://archivesspace.org/) with Traefik, MariaDB, Solr, and the LibOps ArchivesSpace image. Use it with [`sitectl-archivesspace`](https://github.com/libops/sitectl-archivesspace).
+The ArchivesSpace Docker Template gives you a Docker Compose repository for running [ArchivesSpace](https://archivesspace.org/). It includes Traefik, MariaDB, Solr, and the LibOps ArchivesSpace image, and is designed to be managed with [`sitectl-archivesspace`](https://github.com/libops/sitectl-archivesspace).
 
 Docs:
 
@@ -88,7 +88,7 @@ See the [ArchivesSpace sitectl plugin docs](https://sitectl.libops.io/plugins/ar
 The Makefile is intentionally small. It only keeps template-specific targets that are not core sitectl operations:
 
 ```bash
-make rollout
+sitectl deploy
 make test
 make lint
 ```
@@ -100,7 +100,7 @@ Use `sitectl compose ...`, `sitectl traefik ...`, and `sitectl set ...` directly
 - `traefik` owns HTTP ingress.
 - `archivesspace` builds this template on top of the LibOps ArchivesSpace image.
 - `mariadb` is the application database.
-- `solr` builds a small local image from the LibOps Solr base and downloads the ArchivesSpace Solr configset during image build.
+- `solr` uses the LibOps ArchivesSpace Solr image.
 - `config/config.rb` is baked into the template image.
 - `plugins`, `locales`, and `stylesheets` are checked-in customization points for downstream repositories.
 

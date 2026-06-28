@@ -1,4 +1,3 @@
-# syntax=docker/dockerfile:1.20.0
 # renovate: datasource=docker depName=libops/solr versioning=docker
 ARG BASE_IMAGE=libops/solr:9@sha256:97700bbb4413974e441fdf3f5f2e8e32dfbce040174028492135f1db8bc950de
 FROM ${BASE_IMAGE}

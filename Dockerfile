@@ -1,4 +1,3 @@
-# syntax=docker/dockerfile:1.20.0
 ARG BASE_IMAGE=libops/archivesspace:4.2.0
 FROM ${BASE_IMAGE}
 

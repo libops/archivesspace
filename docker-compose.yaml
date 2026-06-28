@@ -79,7 +79,6 @@ services:
   mariadb:
     <<: *common
     image: libops/mariadb:11@sha256:df935aa57a4444a1bd9024afdf8b3d78abfdfa2c4662320badd099fa6193de6b
-    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --innodb_buffer_pool_size=1G --innodb_buffer_pool_instances=1 --log_bin_trust_function_creators=1
     cap_add:
       - SYS_NICE
     secrets:
@@ -101,10 +100,6 @@ services:
       context: ./solr
       args:
         BASE_IMAGE: libops/solr:9@sha256:97700bbb4413974e441fdf3f5f2e8e32dfbce040174028492135f1db8bc950de
-    command:
-      - solr-precreate
-      - archivesspace
-      - /opt/solr/server/solr/configsets/archivesspace
     environment:
       SOLR_JAVA_MEM: "-Xms1g -Xmx1g"
     volumes:

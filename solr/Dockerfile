@@ -18,6 +18,12 @@ RUN --mount=type=cache,id=custom-archivesspace-solr-downloads-${TARGETARCH},shar
     && \
     mkdir -p /opt/solr/server/solr/configsets/archivesspace/conf && \
     cp -R /tmp/archivesspace-release/archivesspace/solr/. /opt/solr/server/solr/configsets/archivesspace/conf/ && \
+    mkdir -p /opt/solr/server/solr/archivesspace && \
+    cp -R /opt/solr/server/solr/configsets/archivesspace/. /opt/solr/server/solr/archivesspace/ && \
+    printf 'name=archivesspace\n' > /opt/solr/server/solr/archivesspace/core.properties && \
     chown -R solr:solr /opt/solr/server/solr/configsets/archivesspace && \
+    chown -R solr:solr /opt/solr/server/solr/archivesspace && \
     rm -rf /tmp/archivesspace-release && \
     cleanup.sh
+
+HEALTHCHECK CMD curl -fsS 'http://localhost:8983/solr/archivesspace/admin/ping?wt=json' | jq -e '.status == "OK"'

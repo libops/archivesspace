@@ -1,10 +1,16 @@
 # ArchivesSpace Docker Template
 
-LibOps Docker Compose template for running [ArchivesSpace](https://archivesspace.org/) with Traefik, MariaDB, Solr, and the LibOps ArchivesSpace image.
+The ArchivesSpace Docker Template gives you a Docker Compose repository for running [ArchivesSpace](https://archivesspace.org/). It includes Traefik, MariaDB, Solr, and the LibOps ArchivesSpace image, and is designed to be managed with [`sitectl-archivesspace`](https://github.com/libops/sitectl-archivesspace).
+
+Docs:
+
+- [Managed application architecture](https://sitectl.libops.io/apps)
+- [ArchivesSpace sitectl plugin](https://sitectl.libops.io/plugins/archivesspace)
 
 ## Requirements
 
 - [sitectl](https://sitectl.libops.io/install) installed on the host that will run the site.
+- [`sitectl-archivesspace`](https://github.com/libops/sitectl-archivesspace) installed for ArchivesSpace create, validation, healthcheck, and helper commands.
 - Docker with the Compose v2 plugin installed on the same host.
 
 ## Quick start
@@ -26,31 +32,51 @@ The default public routes are:
 - Staff interface: `http://localhost/staff/`
 - Backend API: `http://localhost/api/`
 
-## Basic operations with sitectl
+## Local image build
+
+The `archivesspace` service builds this checkout on top of the LibOps ArchivesSpace base image and copies checked-in config, plugins, locales, and stylesheets into the running workload. The `solr` service also builds a small local image from the LibOps Solr base and downloads the matching ArchivesSpace configset. Local builds use the platform selected by the Docker CLI and do not push images.
+
+## Basic Operations
 
 Run these from the generated checkout, or add `--context <name>` when operating from elsewhere.
 
-```bash
-# Start or update the Compose stack
-sitectl compose up --remove-orphans -d
+Start or update the stack with [`sitectl compose`](https://sitectl.libops.io/commands/compose):
 
-# Check the site and context configuration
+```bash
+sitectl compose up --remove-orphans -d
+```
+
+Check the site and context configuration with [`sitectl healthcheck`](https://sitectl.libops.io/commands/healthcheck) and [`sitectl validate`](https://sitectl.libops.io/commands/validate):
+
+```bash
 sitectl healthcheck
 sitectl validate
+```
 
-# Update image tags or pin a full image reference
+Update image tags or pin a full image reference with [`sitectl image`](https://sitectl.libops.io/commands/image):
+
+```bash
 sitectl image set --tag archivesspace=3.5.1 --tag solr=9
 sitectl image set --image archivesspace=libops/archivesspace:3.5.1@sha256:...
+```
 
-# Enable local development bind mounts
+Enable local development bind mounts with [`sitectl set`](https://sitectl.libops.io/commands/set), then apply the component change with [`sitectl converge`](https://sitectl.libops.io/commands/converge):
+
+```bash
 sitectl set dev-mode enabled
 sitectl converge
+```
 
-# Switch TLS modes
+Switch TLS modes with the [Traefik service commands](https://sitectl.libops.io/plugins/traefik):
+
+```bash
 sitectl traefik tls mkcert --domain archivesspace.localhost
 sitectl traefik tls letsencrypt --email ops@example.org
+```
 
-# Trust an upstream load balancer or reverse proxy
+Trust an upstream load balancer or reverse proxy with [`sitectl set`](https://sitectl.libops.io/commands/set), then apply it with [`sitectl converge`](https://sitectl.libops.io/commands/converge):
+
+```bash
 sitectl set reverse-proxy enabled --trusted-ip 203.0.113.10/32
 sitectl converge
 ```
@@ -62,7 +88,7 @@ See the [ArchivesSpace sitectl plugin docs](https://sitectl.libops.io/plugins/ar
 The Makefile is intentionally small. It only keeps template-specific targets that are not core sitectl operations:
 
 ```bash
-make rollout
+sitectl deploy
 make test
 make lint
 ```
@@ -74,7 +100,7 @@ Use `sitectl compose ...`, `sitectl traefik ...`, and `sitectl set ...` directly
 - `traefik` owns HTTP ingress.
 - `archivesspace` builds this template on top of the LibOps ArchivesSpace image.
 - `mariadb` is the application database.
-- `solr` builds a small local image from the LibOps Solr base and downloads the ArchivesSpace Solr configset during image build.
+- `solr` uses the LibOps ArchivesSpace Solr image.
 - `config/config.rb` is baked into the template image.
 - `plugins`, `locales`, and `stylesheets` are checked-in customization points for downstream repositories.
 

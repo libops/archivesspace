@@ -19,7 +19,7 @@ http:
           - /api
   routers:
     archivesspace-api-web:
-      rule: 'Host(`{{ env "DOMAIN" | default "localhost" }}`) && PathPrefix(`/api`)'
+      rule: 'Host(`localhost`) && PathPrefix(`/api`)'
       entryPoints:
         - web
       middlewares:
@@ -27,13 +27,13 @@ http:
       service: archivesspace-api
       priority: 200
     archivesspace-staff-web:
-      rule: 'Host(`{{ env "DOMAIN" | default "localhost" }}`) && PathPrefix(`/staff`)'
+      rule: 'Host(`localhost`) && PathPrefix(`/staff`)'
       entryPoints:
         - web
       service: archivesspace-staff
       priority: 100
     archivesspace-public-web:
-      rule: 'Host(`{{ env "DOMAIN" | default "localhost" }}`)'
+      rule: 'Host(`localhost`)'
       entryPoints:
         - web
       service: archivesspace-public

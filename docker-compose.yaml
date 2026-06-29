@@ -23,17 +23,14 @@ services:
     <<: *common
     image: traefik:v3.7.1@sha256:6b9cbca6fac42ab0075f5437d8dc1685cfd188626d8d515839ea94f8b6271c42
     command:
-      - --providers.file.filename=/etc/traefik/dynamic/archivesspace.yml
+      - --providers.file.directory=/etc/traefik/dynamic
       - --providers.file.watch=true
       - --entrypoints.web.address=:80
       - --entrypoints.web.transport.respondingTimeouts.readTimeout=300s
-    environment:
-      DOMAIN: "${DOMAIN:-localhost}"
-      URI_SCHEME: "${URI_SCHEME:-http}"
     ports:
       - "80:80"
     volumes:
-      - ./conf/traefik/archivesspace.tmpl:/etc/traefik/dynamic/archivesspace.yml:ro
+      - ./conf/traefik:/etc/traefik/dynamic:ro
     depends_on:
       archivesspace:
         condition: service_healthy
@@ -54,7 +51,7 @@ services:
       DB_PORT: "3306"
       DB_NAME: "${DB_NAME:-archivesspace}"
       DB_USER: "${DB_USER:-archivesspace}"
-      DOMAIN: "${DOMAIN:-localhost}"
+      PUBLIC_URL: "http://localhost"
       JAVA_OPTS: "${JAVA_OPTS:--Djava.awt.headless=true -Dfile.encoding=UTF-8 -server -Xss1024k -Djavax.accessibility.assistive_technologies=''}"
       SMTP_FROM: "${SMTP_FROM:-noreply@localhost}"
       SMTP_HOST: "${SMTP_HOST:-host.docker.internal}"

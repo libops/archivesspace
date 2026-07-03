@@ -70,7 +70,7 @@ sitectl converge
 Publish a domain, switch HTTP/TLS mode, configure Let's Encrypt, or trust upstream proxies with the `ingress` component:
 
 ```bash
-sitectl set ingress enabled --mode https-default --domain archivesspace.localhost
+sitectl set ingress enabled --mode https-custom --domain archivesspace.localhost
 sitectl set ingress enabled --mode https-letsencrypt --domain archivesspace.example.org --acme-email ops@example.org
 sitectl set ingress enabled --trusted-ip 203.0.113.10/32
 sitectl converge

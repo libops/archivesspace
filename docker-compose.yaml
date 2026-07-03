@@ -60,6 +60,7 @@ services:
     secrets:
       - source: DB_ROOT_PASSWORD
       - source: ARCHIVESSPACE_DB_PASSWORD
+        target: DB_PASSWORD
     volumes:
       - archivesspace-data:/archivesspace/data:rw
     depends_on:

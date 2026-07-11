@@ -21,8 +21,9 @@ secrets:
 services:
   traefik:
     <<: *common
-    image: traefik:v3.7.1@sha256:6b9cbca6fac42ab0075f5437d8dc1685cfd188626d8d515839ea94f8b6271c42
+    image: traefik:v3.7.5@sha256:e4d98158c01ad752fc1071d4e9573788747230d902cdde00a772516e692d07c9
     command:
+      - --ping=true
       - --providers.file.directory=/etc/traefik/dynamic
       - --providers.file.watch=true
       - --entrypoints.web.address=:80
@@ -30,18 +31,18 @@ services:
     ports:
       - "80:80"
     volumes:
-      - ./conf/traefik:/etc/traefik/dynamic:ro
+      - ./conf/traefik:/etc/traefik/dynamic:ro,z
     depends_on:
       archivesspace:
         condition: service_healthy
+    healthcheck:
+      test: traefik healthcheck --ping
+      start_period: 10s
 
   archivesspace:
     <<: *common
-    image: libops/archivesspace:4.2.0
     build:
       context: .
-      args:
-        BASE_IMAGE: libops/archivesspace:4.2.0
     extra_hosts:
       - "host.docker.internal:host-gateway"
     environment:
@@ -58,16 +59,17 @@ services:
       SMTP_HOST: "${SMTP_HOST:-host.docker.internal}"
       SMTP_PORT: "${SMTP_PORT:-25}"
     secrets:
-      - source: DB_ROOT_PASSWORD
       - source: ARCHIVESSPACE_DB_PASSWORD
         target: DB_PASSWORD
     volumes:
       - archivesspace-data:/archivesspace/data:rw
     depends_on:
+      database-init:
+        condition: service_completed_successfully
       mariadb:
         condition: service_healthy
       solr:
-        condition: service_started
+        condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "wget -q --spider http://localhost:8081/ || exit 1"]
       interval: 1m
@@ -75,11 +77,32 @@ services:
       retries: 5
       start_period: 5m
 
+  database-init:
+    image: libops/base:3.2.2.0@sha256:2382876ad70c936e99f6b838fb16c709cb9d9f91e6aa3be5625355ee1f3fab90
+    restart: "no"
+    networks:
+      default:
+    environment:
+      DB_HOST: mariadb
+      DB_PORT: "3306"
+      DB_NAME: "${DB_NAME:-archivesspace}"
+      DB_USER: "${DB_USER:-archivesspace}"
+      DB_CHARACTER_SET: utf8mb4
+      DB_COLLATION: utf8mb4_unicode_ci
+    secrets:
+      - source: DB_ROOT_PASSWORD
+      - source: ARCHIVESSPACE_DB_PASSWORD
+        target: DB_PASSWORD
+    volumes:
+      - ./scripts/init-database.sh:/usr/local/bin/init-database.sh:ro,z
+    entrypoint: /usr/local/bin/init-database.sh
+    depends_on:
+      mariadb:
+        condition: service_healthy
+
   mariadb:
     <<: *common
-    image: libops/mariadb:11@sha256:df935aa57a4444a1bd9024afdf8b3d78abfdfa2c4662320badd099fa6193de6b
-    cap_add:
-      - SYS_NICE
+    image: libops/mariadb:11@sha256:edc726a734409b93a54535e9251132d778575c0f7e77ae4ef552c9fe936cc560
     secrets:
       - source: DB_ROOT_PASSWORD
     volumes:
@@ -87,7 +110,7 @@ services:
 
   solr:
     <<: *common
-    image: libops/archivesspace-solr:4.2.0
+    image: libops/archivesspace-solr:4.2.0@sha256:1ddbbaad4695c7ddd24c1c71b5387326f3737b2144bf7a8fbf3b0fdfa37cb68a
     environment:
       SOLR_JAVA_MEM: "-Xms1g -Xmx1g"
     volumes:

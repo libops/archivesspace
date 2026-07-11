@@ -25,4 +25,4 @@ generate_secret_file() {
 }
 
 generate_secret_file ./secrets/DB_ROOT_PASSWORD
-generate_secret_file ./secrets/ARCHIVESSPACE_DB_PASSWORD 0644
+generate_secret_file ./secrets/ARCHIVESSPACE_DB_PASSWORD

@@ -78,7 +78,7 @@ services:
       start_period: 5m
 
   database-init:
-    image: libops/base:3.2.2.0@sha256:2382876ad70c936e99f6b838fb16c709cb9d9f91e6aa3be5625355ee1f3fab90
+    image: libops/base:3.2.2.0@sha256:0c6bab5444d4758bb977a42c1e5199cba733c7776e1aa006f8021108a785c547
     restart: "no"
     networks:
       default:
@@ -102,7 +102,7 @@ services:
 
   mariadb:
     <<: *common
-    image: libops/mariadb:11@sha256:edc726a734409b93a54535e9251132d778575c0f7e77ae4ef552c9fe936cc560
+    image: libops/mariadb:11@sha256:1b0f53f277cedf95e1fa6df25580de01dd2d0722b09f39fe0d93cfb6263e26f3
     secrets:
       - source: DB_ROOT_PASSWORD
     volumes:
@@ -110,7 +110,7 @@ services:
 
   solr:
     <<: *common
-    image: libops/archivesspace-solr:4.2.0@sha256:1ddbbaad4695c7ddd24c1c71b5387326f3737b2144bf7a8fbf3b0fdfa37cb68a
+    image: libops/archivesspace-solr:4.2.0@sha256:4ed8c17b8b2c34e3c91293697a439ce5e22734a37a29c2fc2e92165ad0c5ed45
     environment:
       SOLR_JAVA_MEM: "-Xms1g -Xmx1g"
     volumes:

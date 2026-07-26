@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=libops/archivesspace:4.2.0@sha256:4082d760cac3fa1c73ee74abf16f83e30560f55a91c5eed8770d365b7df411d3
+ARG BASE_IMAGE=libops/archivesspace:4.2.0@sha256:c9d5a0e17b941ef712f0086f8460094459bd0acd83e68829d184642ab32f3ecb
 FROM ${BASE_IMAGE}
 
 # archivesspace:archivesspace in the base image.

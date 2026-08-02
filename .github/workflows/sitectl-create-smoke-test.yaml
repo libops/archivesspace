@@ -26,9 +26,6 @@ jobs:
       plugin: archivesspace
       create-definition: ${{ matrix.create_definition }}
       create-args: ${{ matrix.create_args }}
-      packages: sitectl
-      package-versions: sitectl=1.6.1
+      packages: sitectl sitectl-archivesspace
+      package-versions: sitectl=1.6.3 sitectl-archivesspace=1.2.0
       allow-unversioned-packages: false
-      local-plugin-repository: libops/sitectl-archivesspace
-      local-plugin-ref: shared-compose-init
-      local-plugin-path: sitectl-archivesspace-source

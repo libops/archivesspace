@@ -2,7 +2,7 @@
 
 set -eou pipefail
 
-./scripts/init.sh
+docker compose run --rm init
 docker compose build --pull archivesspace
 docker compose up --remove-orphans --wait --wait-timeout "${COMPOSE_WAIT_TIMEOUT:-600}"
 

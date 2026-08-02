@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-./scripts/init.sh
+docker compose run --rm init
 
 service="${COMPOSE_SERVICE:-archivesspace}"
 

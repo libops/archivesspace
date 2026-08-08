@@ -29,3 +29,5 @@ jobs:
       packages: sitectl sitectl-archivesspace
       package-versions: sitectl=1.6.3 sitectl-archivesspace=1.2.0
       allow-unversioned-packages: false
+      run-verify: true
+      verify-args: --disposable

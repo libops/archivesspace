@@ -53,7 +53,15 @@ Check the site and context configuration with [`sitectl healthcheck`](https://si
 ```bash
 sitectl healthcheck
 sitectl validate
+sitectl verify --session-file /run/secrets/archivesspace_session
 ```
+
+`verify` checks the ArchivesSpace version endpoint plus authenticated repository
+and search behavior. Use a short-lived session file or the
+`ARCHIVESSPACE_SESSION_FILE` environment variable; session tokens must not be
+placed directly in command arguments. Fresh-install CI may use
+`sitectl verify --disposable`, which authenticates with the image's one-time
+bootstrap credential and is not appropriate after that credential has changed.
 
 Update the application base tag or pin that base by digest with [`sitectl image`](https://sitectl.libops.io/commands/image):
 
